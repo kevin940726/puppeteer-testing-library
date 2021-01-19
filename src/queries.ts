@@ -1,7 +1,7 @@
 import { ElementHandle, Page } from 'puppeteer';
 import { QueryError } from './query-error';
 import { config } from './configure';
-import { Query } from './types';
+import { Query, ElementWithComputedAccessibilityInfo } from './types';
 
 interface QueryOptions {
   root?: ElementHandle;
@@ -16,24 +16,19 @@ interface FindAllOptions extends FindOptions {
   allowEmpty?: boolean;
 }
 
-interface ElementWithComputedAccessibilityInfo extends HTMLElement {
-  computedName: string;
-  computedRole: string;
-}
-
 async function queryAll(
-  { role, name, selector, ...properties }: Query,
+  { role, name, text, selector, ...properties }: Query,
   { root, page = config.page }: QueryOptions = {}
 ) {
-  if (!role && !name && !selector) {
+  if (!role && !name && !selector && !text) {
     throw new QueryError(
       'QueryParametersError',
-      'At least one of "role", "name", or "selector" is required in the query.'
+      'At least one of "role", "name", "text", or "selector" is required in the query.'
     );
   }
 
   const elementsHandle = await page.evaluateHandle(
-    (_root, _selector, _role, _name) => {
+    (_root, _selector, _role, _name, _text) => {
       return (Array.from(
         (_root || document).querySelectorAll(_selector)
       ) as ElementWithComputedAccessibilityInfo[]).filter(
@@ -41,7 +36,10 @@ async function queryAll(
           (!_role || node.computedRole === _role) &&
           (!_name || _name.type === 'RegExp'
             ? RegExp(_name.source, _name.flags).test(node.computedName)
-            : node.computedName === _name)
+            : node.computedName === _name) &&
+          (!_text || _text.type === 'RegExp'
+            ? RegExp(_text.source, _text.flags).test(node.textContent || '')
+            : node.textContent === _text)
       );
     },
     root || '',
@@ -53,7 +51,14 @@ async function queryAll(
           source: name.source,
           flags: name.flags,
         }
-      : name || ''
+      : name || '',
+    text instanceof RegExp
+      ? {
+          type: 'RegExp',
+          source: text.source,
+          flags: text.flags,
+        }
+      : text || ''
   );
 
   const elements = [];
@@ -76,7 +81,7 @@ async function queryAll(
       if (
         propertiesKeys.every((_property) => {
           const property = _property as Exclude<
-            Exclude<Exclude<keyof Query, 'role'>, 'name'>,
+            Exclude<Exclude<Exclude<keyof Query, 'role'>, 'name'>, 'text'>,
             'selector'
           >;
           Object.is(elementSnapshot[property], properties[property]);

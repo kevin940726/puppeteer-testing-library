@@ -1,6 +1,6 @@
 import { ElementHandle, Page } from 'puppeteer';
 import diff from 'jest-diff';
-import { Query } from './types';
+import { Query, ElementWithComputedAccessibilityInfo } from './types';
 
 async function toMatchQuery(
   this: jest.MatcherContext,
@@ -8,7 +8,23 @@ async function toMatchQuery(
   query: Partial<Query>,
   { page = (global as any).page } = {}
 ) {
-  const snapshot = await page.accessibility.snapshot({ root: elementHandle });
+  const snapshot =
+    (await page.accessibility.snapshot({ root: elementHandle })) || {};
+
+  if (query.text) {
+    Object.assign(snapshot, {
+      text: await elementHandle.evaluate((node) => node.textContent),
+    });
+  }
+
+  // In some cases the accessibility snapshot won't return "role" even when it's defined
+  if (query.role && !snapshot.role) {
+    Object.assign(snapshot, {
+      role: await elementHandle.evaluate(
+        (node) => (node as ElementWithComputedAccessibilityInfo).computedRole
+      ),
+    });
+  }
 
   let matches = true;
   if (query.selector) {
@@ -114,7 +130,7 @@ async function toBeVisible(
     message: () =>
       [
         this.utils.matcherHint('toBeVisible', 'element', undefined, options),
-        `Expected the element to ${
+        `Expected the element to${
           this.isNot ? ' not ' : ' '
         }be visible in the DOM.`,
       ].join('\n'),
@@ -139,7 +155,7 @@ async function toHaveFocus(
     message: () =>
       [
         this.utils.matcherHint('toHaveFocus', 'element', undefined, options),
-        `Expected the element to ${this.isNot ? ' not ' : ' '}have focus.`,
+        `Expected the element to${this.isNot ? ' not ' : ' '}have focus.`,
       ].join('\n'),
   };
 }

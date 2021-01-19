@@ -2,14 +2,14 @@ import { find, findAll, QueryError } from '../';
 import '../extend-expect';
 
 beforeEach(async () => {
-  await render(html``);
+  await html``;
 });
 
 it('should find elements', async () => {
-  await render(html`
+  await html`
     <button>Button 1</button>
     <button>Button 2</button>
-  `);
+  `;
 
   const buttons = await findAll({ role: 'button' });
 
@@ -27,25 +27,54 @@ it('should find elements', async () => {
 
   await expect(buttons[0]).toBeElement(button1);
   await expect(buttons[1]).toBeElement(button2);
+
+  await html`
+    <label for="username">Username</label>
+    <input id="username" />
+  `;
+
+  const input = await find({ role: 'textbox', name: 'Username' });
+  await expect(input).toMatchQuery({ selector: '#username' });
+
+  await input.type('My name');
+
+  await expect(input).toMatchQuery({ value: 'My name' });
+
+  await html`
+    <section aria-labelledby="section-a">
+      <h2 id="section-a">Section A</h2>
+      <div role="group">A</div>
+    </section>
+    <section aria-labelledby="section-b">
+      <h2 id="section-b">Section B</h2>
+      <div role="group">B</div>
+    </section>
+    <div role="group">C</div>
+  `;
+
+  const sectionA = await find({ role: 'region', name: 'Section A' });
+  const groupA = await find({ role: 'group' }, { root: sectionA });
+
+  await expect(groupA).toMatchQuery({ text: 'A' });
 });
 
 it('should find elements eventually within timeout', async () => {
   const findButtonPromise = find({ role: 'button' });
 
-  await render(html`<button>Button</button>`);
+  await html`<button>Button</button>`;
 
   const button = await findButtonPromise;
 
   await expect(button).toMatchQuery({ name: 'Button' });
 
-  await render(html``);
+  await html``;
 
   const findAllButtonsPromise = findAll({ role: 'button' });
 
-  await render(html`
+  await html`
     <button>Button 1</button>
     <button>Button 2</button>
-  `);
+  `;
 
   const buttons = await findAllButtonsPromise;
 
@@ -68,10 +97,10 @@ it('should throw errors when the elements are not found', async () => {
     expect(err.name).toBe('QueryTimeoutError');
   }
 
-  await render(html`
+  await html`
     <button>button 1</button>
     <button>button 2</button>
-  `);
+  `;
 
   try {
     await find({ role: 'button' });
@@ -81,12 +110,10 @@ it('should throw errors when the elements are not found', async () => {
   }
 });
 
-async function render(html: string) {
+async function html(strings: TemplateStringsArray) {
+  const string = strings.join('');
+
   await page.evaluate((_html) => {
     document.body.innerHTML = _html;
-  }, html);
-}
-
-function html(strings: TemplateStringsArray) {
-  return strings.join('');
+  }, string);
 }
