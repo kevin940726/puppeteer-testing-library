@@ -2,13 +2,6 @@
 
 Custom queries and Jest matchers for Puppeteer with enforced best practices.
 
-## Installation
-
-```sh
-npm install --save-dev puppeteer-testing-library
-yarn add -D puppeteer-testing-library
-```
-
 ## Usage
 
 ```js
@@ -25,6 +18,65 @@ await userNameInput.type('My name');
 expect(userNameInput).toMatchQuery({ value: 'My name' });
 const submitButton = await find({ role: 'button', name: 'Submit' });
 await submitButton.click();
+```
+
+## Installation
+
+```sh
+npm install --save-dev puppeteer-testing-library
+yarn add -D puppeteer-testing-library
+```
+
+`puppeteer-testing-library` needs a special flag to be passed to chromium for the queries to work. Import `launchArgs` and pass it to the `args` options in `puppeteer.launch`.
+
+```js
+import { launchArgs } from 'puppeteer-testing-library';
+
+const browser = await puppeteer.launch({
+  args: launchArgs(),
+});
+```
+
+You can pass in additional args to `launchArgs()`, it will handle the merging for you.
+
+```js
+const browser = await puppeteer.launch({
+  args: launchArgs(['--mute-audio']),
+});
+```
+
+If you're using [`jest-puppeteer`](https://github.com/smooth-code/jest-puppeteer), pass it to `jest-puppeteer.config.js`
+
+```js
+// jest-puppeteer.config.js
+const { launchArgs } = require('puppeteer-testing-library');
+
+module.exports = {
+  launch: {
+    args: launchArgs(),
+  },
+};
+```
+
+Import from the `extend-expect` endpoint if you want to use all of the helpful [matchers](#matchers) in Jest. Either include it directly in the test file, or include it in the [`setupFilesAfterEnv`](https://jestjs.io/docs/en/configuration.html#setupfilesafterenv-array) array.
+
+Import directly:
+
+```js
+import 'puppeteer-testing-library/extend-expect';
+
+expect(elementHandle).toBeVisible();
+```
+
+In `setupFilesAfterEnv`:
+
+```js
+// jest.config.js
+module.exports = {
+  setupFilesAfterEnv: [
+    'puppeteer-testing-library/extend-expect',
+  ],
+};
 ```
 
 ## Queries
@@ -157,12 +209,6 @@ At least one of `role`, `name`, `text`, or `selector` is required in the query. 
 
 ## Matchers
 
-Enable the matchers by importing from the `extend-expect` endpoint either directly in the test files or in any files in the [`setupFilesAfterEnv`](https://jestjs.io/docs/en/configuration.html#setupfilesafterenv-array) array.
-
-```js
-import 'puppeteer-testing-library/extend-expect';
-```
-
 All matchers below are asynchronous, remember to add `await` in front of the `expect` statement.
 
 #### `toMatchQuery(query: Query)`
@@ -192,10 +238,9 @@ Test if the element is visible in the page (but not necessary visible in the vie
 await expect(elementHandle).toBeVisible();
 ```
 
-
 #### `toHaveFocus()`
 
-Test if the element has focus, i.e. `document.activeElement`.
+Test if the element has focus, i.e. if it is the `document.activeElement`.
 
 ```js
 await expect(elementHandle).toHaveFocus();
