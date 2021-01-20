@@ -75,16 +75,17 @@ async function queryAll(
     if (!propertiesKeys.length) {
       elements.push(element);
     } else {
-      const elementSnapshot = await page.accessibility.snapshot({
-        root: element || undefined,
-      });
+      const elementSnapshot =
+        (await page.accessibility.snapshot({
+          root: element || undefined,
+        })) || {};
       if (
         propertiesKeys.every((_property) => {
           const property = _property as Exclude<
             Exclude<Exclude<Exclude<keyof Query, 'role'>, 'name'>, 'text'>,
             'selector'
           >;
-          Object.is(elementSnapshot[property], properties[property]);
+          return Object.is(elementSnapshot[property], properties[property]);
         })
       ) {
         elements.push(element);
