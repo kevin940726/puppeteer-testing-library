@@ -119,6 +119,7 @@ A full list of possible fields in the query is as follow:
 - name `<string|RegExp>` A human readable name for the node.
 - text `<string|RegExp>` Matches the `textContent` of the node.
 - selector `<string>` A CSS selector to query the node.
+- visible `<boolean>` Whether the node is visible in the page (but not necessary visible in the viewport). **Defaults to `true`** in `find` and `findAll` queries.
 - value `<string|number|RegExp>` The current value of the node.
 - description `<string|RegExp>` An additional human readable description of the node.
 - keyshortcuts `<string>` Keyboard shortcuts associated with this node.
@@ -172,14 +173,6 @@ Test if the element is the same element as the `expectedElement`.
 
 ```js
 await expect(elementHandle).toBeElement(myButton);
-```
-
-#### `toBeVisible()`
-
-Test if the element is visible in the page (not necessary visible in the viewport).
-
-```js
-await expect(elementHandle).toBeVisible();
 ```
 
 #### `toHaveFocus()`
