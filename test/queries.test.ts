@@ -110,6 +110,33 @@ it('should throw errors when the elements are not found', async () => {
   }
 });
 
+it('should only find visible elements by default', async () => {
+  await html`
+    <button hidden>hidden</button>
+    <button style="display: none">display: none</button>
+    <button style="visibility: hidden">visibility: hidden</button>
+    <div style="display: none">
+      <button>display: none in ancestor</button>
+    </div>
+    <div style="visibility: hidden">
+      <button>visibility: hidden in ancestor</button>
+    </div>
+  `;
+
+  const visibleButtons = await findAll(
+    { role: 'button' },
+    { allowEmpty: true, timeout: 0 }
+  );
+
+  expect(visibleButtons).toEqual([]);
+
+  const allButtons = await findAll({ role: 'button' }, { visible: false });
+
+  for (const button of allButtons) {
+    await expect(button).not.toBeVisible();
+  }
+});
+
 async function html(strings: TemplateStringsArray) {
   const string = strings.join('');
 

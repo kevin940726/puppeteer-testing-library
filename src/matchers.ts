@@ -117,7 +117,12 @@ async function toBeVisible(
   this: jest.MatcherContext,
   elementHandle: ElementHandle
 ) {
-  const pass = !!(await elementHandle.boundingBox());
+  const pass = await elementHandle.evaluate((node) => {
+    const style = window.getComputedStyle(node);
+    if (!style || style.visibility === 'hidden') return false;
+    const rect = node.getBoundingClientRect();
+    return !!(rect.top || rect.bottom || rect.width || rect.height);
+  });
 
   const options = {
     isNot: this.isNot,
