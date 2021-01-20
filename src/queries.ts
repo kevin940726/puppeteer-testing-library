@@ -6,6 +6,7 @@ import { Query, ElementWithComputedAccessibilityInfo } from './types';
 interface QueryOptions {
   root?: ElementHandle;
   page?: Page;
+  visible?: boolean;
 }
 
 interface FindOptions extends QueryOptions {
@@ -17,8 +18,8 @@ interface FindAllOptions extends FindOptions {
 }
 
 async function queryAll(
-  { role, name, text, selector, visible = true, ...properties }: Query,
-  { root, page = config.page }: QueryOptions = {}
+  { role, name, text, selector, ...properties }: Query,
+  { root, page = config.page, visible = true }: QueryOptions = {}
 ) {
   if (!role && !name && !selector && !text) {
     throw new QueryError(
@@ -92,11 +93,8 @@ async function queryAll(
       if (
         propertiesKeys.every((_property) => {
           const property = _property as Exclude<
-            Exclude<
-              Exclude<Exclude<Exclude<keyof Query, 'role'>, 'name'>, 'text'>,
-              'selector'
-            >,
-            'visible'
+            Exclude<Exclude<Exclude<keyof Query, 'role'>, 'name'>, 'text'>,
+            'selector'
           >;
           return Object.is(elementSnapshot[property], properties[property]);
         })

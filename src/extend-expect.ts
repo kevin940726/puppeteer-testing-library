@@ -10,6 +10,7 @@ declare global {
         options?: { page?: Page }
       ): Promise<R>;
       toBeElement(expectedElement: ElementHandle): Promise<R>;
+      toBeVisible(): Promise<R>;
       toHaveFocus(): Promise<R>;
     }
   }

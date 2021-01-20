@@ -26,7 +26,6 @@ interface OptionalQuery {
   orientation?: string;
   selector?: string;
   text?: string | RegExp;
-  visible?: true;
 }
 
 export type Query =

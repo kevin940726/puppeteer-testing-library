@@ -51,9 +51,10 @@ The options has the following type:
 
 ```ts
 interface FindOptions {
-  page?: Page;
-  timeout?: number | false;
+  page?: Page = global.page;
+  timeout?: number | false = 3000;
   root?: ElementHandle;
+  visible?: boolean = true;
 }
 ```
 
@@ -72,6 +73,15 @@ You can specify `root` to limit the search to only within certain element.
 const buttonInTheFirstSection = await find(
   { role: 'button' },
   { root: firstSection }
+);
+```
+
+By default, it will only find the elements that are visible in the page (not necessary visible in the viewport). You can disable this check by specifying `visible` to `false`. **Note that we just disable the check, the results could still contain visible elements.**
+
+```js
+const hiddenButton = await find(
+  { role: 'button' },
+  { visible: false }
 );
 ```
 
@@ -119,7 +129,6 @@ A full list of possible fields in the query is as follow:
 - name `<string|RegExp>` A human readable name for the node.
 - text `<string|RegExp>` Matches the `textContent` of the node.
 - selector `<string>` A CSS selector to query the node.
-- visible `<boolean>` Whether the node is visible in the page (but not necessary visible in the viewport). **Defaults to `true`** in `find` and `findAll` queries.
 - value `<string|number|RegExp>` The current value of the node.
 - description `<string|RegExp>` An additional human readable description of the node.
 - keyshortcuts `<string>` Keyboard shortcuts associated with this node.
@@ -174,6 +183,15 @@ Test if the element is the same element as the `expectedElement`.
 ```js
 await expect(elementHandle).toBeElement(myButton);
 ```
+
+#### `toBeVisible()`
+
+Test if the element is visible in the page (but not necessary visible in the viewport).
+
+```js
+await expect(elementHandle).toBeVisible();
+```
+
 
 #### `toHaveFocus()`
 

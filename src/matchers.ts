@@ -17,12 +17,6 @@ async function toMatchQuery(
     });
   }
 
-  if (query.visible != null) {
-    Object.assign(snapshot, {
-      visible: !!(await elementHandle.boundingBox()),
-    });
-  }
-
   // In some cases the accessibility snapshot won't return "role" even when it's defined
   if (query.role && !snapshot.role) {
     Object.assign(snapshot, {
@@ -119,6 +113,27 @@ async function toBeElement(
   };
 }
 
+async function toBeVisible(
+  this: jest.MatcherContext,
+  elementHandle: ElementHandle
+) {
+  const pass = !!(await elementHandle.boundingBox());
+
+  const options = {
+    isNot: this.isNot,
+    promise: this.promise,
+  };
+
+  return {
+    pass,
+    message: () =>
+      [
+        this.utils.matcherHint('toBeVisible', 'element', undefined, options),
+        `Expected the element to${this.isNot ? ' not ' : ' '}be visible.`,
+      ].join('\n'),
+  };
+}
+
 async function toHaveFocus(
   this: jest.MatcherContext,
   elementHandle: ElementHandle
@@ -142,4 +157,4 @@ async function toHaveFocus(
   };
 }
 
-export { toMatchQuery, toBeElement, toHaveFocus };
+export { toMatchQuery, toBeElement, toBeVisible, toHaveFocus };
