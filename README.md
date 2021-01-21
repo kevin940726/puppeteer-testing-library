@@ -58,6 +58,33 @@ module.exports = {
 };
 ```
 
+`puppeteer-testing-library` expects there's a `page` variable globally to perform most of the queries. This is already the default in `jest-puppeteer`, so you don't have to do anything if you're using it. Or, you can directly assign `global.page` to the current `page` instance.
+
+```js
+global.page = await browser.newPage();
+```
+
+You can also use the `configure` API to assign them globally.
+
+```js
+import { configure } from 'puppeteer-testing-library';
+
+const page = await browser.newPage();
+configure({
+  page,
+});
+```
+
+If you'd rather do it explicitly on every query, you can pass your `page` instance to the options.
+
+```js
+const page = await browser.newPage();
+const button = await find(
+  { role: 'button' },
+  { page }
+);
+```
+
 Import from the `extend-expect` endpoint if you want to use all of the helpful [matchers](#matchers) in Jest. Either include it directly in the test file, or include it in the [`setupFilesAfterEnv`](https://jestjs.io/docs/en/configuration.html#setupfilesafterenv-array) array.
 
 Import directly:
@@ -79,7 +106,34 @@ module.exports = {
 };
 ```
 
-## Queries
+## API
+
+#### `configure({ page?: Page = global.page, timeout?: number = 3000 })`
+
+Use `configure` to setup all the default options globally. Queries after `configure` will all use the updated defaults.
+
+```js
+import { configure } from 'puppeteer-testing-library';
+
+configure({
+  page,
+  timeout: 5000,
+});
+```
+
+`configure` will return the previous assigned config, so that you can restore the configuration back to its original state.
+
+```js
+// Change the default page for every query below
+const originalConfig = configure({ page: newPage });
+
+// Do some queries with the newPage...
+
+// Restore back to the original configuration
+configure(originalConfig);
+```
+
+### Queries
 
 #### `find(query: Query, options: FindOptions): Promise<ElementHandle>`
 
@@ -207,7 +261,7 @@ A full list of possible fields in the query is as follow:
 
 At least one of `role`, `name`, `text`, or `selector` is required in the query. While also preferring the order of `role` > `name` > `text` > `selector` when combining the query. Note that you can combine multiple fields together in your query to increase confidence.
 
-## Matchers
+### Matchers
 
 All matchers below are asynchronous, remember to add `await` in front of the `expect` statement.
 
