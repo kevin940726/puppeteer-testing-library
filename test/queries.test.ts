@@ -1,9 +1,6 @@
 import { find, findAll, QueryError } from '../';
 import '../extend-expect';
-
-beforeEach(async () => {
-  await html``;
-});
+import { html } from './test-utils';
 
 it('should find elements', async () => {
   await html`
@@ -136,11 +133,3 @@ it('should only find visible elements by default', async () => {
     await expect(button).not.toBeVisible();
   }
 });
-
-async function html(strings: TemplateStringsArray) {
-  const string = strings.join('');
-
-  await page.evaluate((_html) => {
-    document.body.innerHTML = _html;
-  }, string);
-}

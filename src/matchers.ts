@@ -133,7 +133,7 @@ async function toBeVisible(
     pass,
     message: () =>
       [
-        this.utils.matcherHint('toBeVisible', 'element', undefined, options),
+        this.utils.matcherHint('toBeVisible', 'element', '', options),
         `Expected the element to${this.isNot ? ' not ' : ' '}be visible.`,
       ].join('\n'),
   };
@@ -156,7 +156,7 @@ async function toHaveFocus(
     pass,
     message: () =>
       [
-        this.utils.matcherHint('toHaveFocus', 'element', undefined, options),
+        this.utils.matcherHint('toHaveFocus', 'element', '', options),
         `Expected the element to${this.isNot ? ' not ' : ' '}have focus.`,
       ].join('\n'),
   };
