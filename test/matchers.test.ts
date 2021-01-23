@@ -125,7 +125,7 @@ describe('toBeVisible', () => {
 describe('toHaveFocus', () => {
   it('should match the current focused elements', async () => {
     await html`
-      <input id="input" autofocus />
+      <input id="input" />
       <button id="button">button</button>
       <button id="not-focusable-button" tabindex="-1">Not focusable</button>
       <a id="link" href="#">Link</a>
