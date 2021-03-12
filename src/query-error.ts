@@ -29,4 +29,16 @@ class QueryError extends Error {
   }
 }
 
-export { QueryError };
+class QueryEmptyError extends QueryError {
+  constructor(message: string) {
+    super('QueryEmptyError', message);
+  }
+}
+
+class QueryMultipleError extends QueryError {
+  constructor(message: string) {
+    super('QueryMultipleError', message);
+  }
+}
+
+export { QueryError, QueryEmptyError, QueryMultipleError };

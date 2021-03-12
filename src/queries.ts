@@ -1,5 +1,5 @@
 import { ElementHandle, Page } from 'puppeteer';
-import { QueryError } from './query-error';
+import { QueryError, QueryEmptyError, QueryMultipleError } from './query-error';
 import { config } from './configure';
 import { Query, ElementWithComputedAccessibilityInfo } from './types';
 
@@ -11,10 +11,6 @@ interface QueryOptions {
 
 interface FindOptions extends QueryOptions {
   timeout?: number | false;
-}
-
-interface FindAllOptions extends FindOptions {
-  allowEmpty?: boolean;
 }
 
 async function queryAll(
@@ -111,12 +107,7 @@ async function queryAll(
 
 async function findAll(
   query: Query,
-  {
-    timeout = config.timeout,
-    page = config.page,
-    allowEmpty = false,
-    ...options
-  }: FindAllOptions = {}
+  { timeout = config.timeout, page = config.page, ...options }: FindOptions = {}
 ) {
   let elements = await queryAll(query, options);
   let hasTimeout = !timeout;
@@ -132,27 +123,20 @@ async function findAll(
     elements = await queryAll(query, options);
   }
 
-  if (!allowEmpty && !elements.length) {
-    if (timeout && hasTimeout) {
-      throw new QueryError(
-        'QueryTimeoutError',
-        `Unable to find any nodes within the ${timeout}ms timeout.`
-      );
-    }
-
-    if (!elements.length) {
-      throw new QueryError('QueryEmptyError', 'Unable to find any nodes.');
-    }
+  if (!elements.length) {
+    throw new QueryEmptyError(
+      'Unable to find any nodes' + (timeout ? ` within ${timeout}ms.` : '.')
+    );
   }
 
   return elements;
 }
 
 async function find(query: Query, options: FindOptions = {}) {
-  const elements = await findAll(query, { ...options, allowEmpty: false });
+  const elements = await findAll(query, options);
 
   if (elements.length > 1) {
-    throw new QueryError('QueryMultipleError', 'Found more than one node.');
+    throw new QueryMultipleError('Found more than one node.');
   }
 
   const [element, ...rest] = elements;

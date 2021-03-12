@@ -12,6 +12,7 @@ declare global {
       toBeElement(expectedElement: ElementHandle): Promise<R>;
       toBeVisible(): Promise<R>;
       toHaveFocus(): Promise<R>;
+      toThrowQueryEmptyError(): Promise<R>;
     }
   }
 }

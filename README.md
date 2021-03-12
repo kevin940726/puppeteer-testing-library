@@ -191,7 +191,7 @@ const hiddenButton = await find(
 );
 ```
 
-#### `findAll(query: Query, options: FindAllOptions): Promise<ElementHandle[]>`
+#### `findAll(query: Query, options: FindOptions): Promise<ElementHandle[]>`
 
 Find all the elements matching the [`query`](#query). Will throw errors when there are no matching elements. By default, it will wait up to 3 seconds until finding the elements. You can customize the timeout in the options.
 
@@ -208,23 +208,31 @@ It finds all the buttons with the specified `role`:
 const buttons = await findAll({ role: 'button' });
 ```
 
-##### `FindAllOptions`
+In the case where you want to assert if there're no matching elements, wrap the statement inside a try/catch block and check if the error name matches `QueryEmptyError`. You will probably want to also decrease the timeout value so that the test doesn't have to wait that long.
 
-The options extends [`FindOptions`](#FindOptions) with the following type:
-
-```ts
-interface FindAllOptions extends FindOptions {
-  allowEmpty?: boolean;
+```js
+try {
+  const shouldBeEmptyResults = await findAll({ role: 'button' }, { timeout: 0 });
+} catch (err) {
+  if (err.name !== 'QueryEmptyError') {
+    // Not expected error
+    throw err;
+  }
 }
 ```
 
-You can specify `allowEmpty` to true to allow empty results. Note that it will still try to search for elements within the `timeout`, remember to disable it if you just want to assert an empty result.
+With Jest, you can wrap it in a assertion.
 
 ```js
-const emptyButtonsList = await findAll(
-  { role: 'button' },
-  { allowEmpty: true, timeout: 0 }
-);
+await expect(findAll({ role: 'button' }, { timeout: 0 })).rejects.toThrow('QueryEmptyError');
+```
+
+Or, you can assert if the error matches `QueryEmptyError`.
+
+```js
+import { QueryEmptyError } from 'puppeteer-testing-library';
+
+await expect(findAll({ role: 'button' }, { timeout: 0 })).rejects.toThrow(QueryEmptyError);
 ```
 
 #### `Query`

@@ -1,6 +1,7 @@
 import { ElementHandle, Page } from 'puppeteer';
 import diff from 'jest-diff';
 import { Query, ElementWithComputedAccessibilityInfo } from './types';
+import { QueryEmptyError, QueryMultipleError } from './query-error';
 
 async function toMatchQuery(
   this: jest.MatcherContext,
@@ -162,4 +163,56 @@ async function toHaveFocus(
   };
 }
 
-export { toMatchQuery, toBeElement, toBeVisible, toHaveFocus };
+async function toThrowQueryEmptyError(
+  this: jest.MatcherContext,
+  promise: Promise<ElementHandle>
+): Promise<jest.CustomMatcherResult> {
+  let error: Error | null = null;
+  let pass = false;
+
+  try {
+    await promise;
+  } catch (err) {
+    error = err;
+  }
+
+  pass = error?.name === 'QueryEmptyError';
+
+  const options = {
+    isNot: this.isNot,
+    promise: this.promise,
+  };
+
+  return {
+    pass,
+    message: () =>
+      error != null
+        ? [
+            this.utils.matcherHint(
+              'toThrowQueryEmptyError',
+              'query',
+              '',
+              options
+            ),
+            'Expected the query to throw "QueryEmptyError", instead it throws the following error.',
+            error,
+          ].join('\n')
+        : [
+            this.utils.matcherHint(
+              'toThrowQueryEmptyError',
+              'query',
+              '',
+              options
+            ),
+            'Expected the query to throw "QueryEmptyError", instead it didn\'t throw any errors.',
+          ].join('\n'),
+  };
+}
+
+export {
+  toMatchQuery,
+  toBeElement,
+  toBeVisible,
+  toHaveFocus,
+  toThrowQueryEmptyError,
+};

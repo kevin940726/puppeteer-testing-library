@@ -1,4 +1,10 @@
-import { find, findAll, QueryError } from '../';
+import {
+  find,
+  findAll,
+  QueryError,
+  QueryEmptyError,
+  QueryMultipleError,
+} from '../';
 import '../extend-expect';
 import { html } from './test-utils';
 
@@ -83,16 +89,17 @@ it('should throw errors when the elements are not found', async () => {
   try {
     await findAll({ role: 'button' }, { timeout: 0 });
   } catch (err) {
+    expect(err).toBeInstanceOf(QueryEmptyError);
     expect(err).toBeInstanceOf(QueryError);
     expect(err.name).toBe('QueryEmptyError');
   }
 
-  try {
-    await find({ role: 'button' }, { timeout: 10 });
-  } catch (err) {
-    expect(err).toBeInstanceOf(QueryError);
-    expect(err.name).toBe('QueryTimeoutError');
-  }
+  let findButtonPromise = find({ role: 'button' }, { timeout: 0 });
+  await expect(findButtonPromise).rejects.toThrow(QueryEmptyError);
+  await expect(findButtonPromise).rejects.toThrow(QueryError);
+  await expect(findButtonPromise).rejects.toThrowErrorMatchingInlineSnapshot(
+    `"Unable to find any nodes."`
+  );
 
   await html`
     <button>button 1</button>
@@ -102,9 +109,13 @@ it('should throw errors when the elements are not found', async () => {
   try {
     await find({ role: 'button' });
   } catch (err) {
+    expect(err).toBeInstanceOf(QueryMultipleError);
     expect(err).toBeInstanceOf(QueryError);
     expect(err.name).toBe('QueryMultipleError');
   }
+
+  findButtonPromise = find({ role: 'button' }, { timeout: 0 });
+  await expect(findButtonPromise).rejects.toThrow(QueryError);
 });
 
 it('should only find visible elements by default', async () => {
@@ -120,12 +131,11 @@ it('should only find visible elements by default', async () => {
     </div>
   `;
 
-  const visibleButtons = await findAll(
+  const findAllVisibleButtonsPromise = findAll(
     { role: 'button' },
-    { allowEmpty: true, timeout: 0 }
+    { timeout: 0 }
   );
-
-  expect(visibleButtons).toEqual([]);
+  await expect(findAllVisibleButtonsPromise).rejects.toThrow(QueryEmptyError);
 
   const allButtons = await findAll({ role: 'button' }, { visible: false });
 
