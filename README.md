@@ -106,6 +106,14 @@ module.exports = {
 };
 ```
 
+## Difference between [`pptr-testing-library`](https://github.com/testing-library/pptr-testing-library)
+
+[`pptr-testing-library`](https://github.com/testing-library/pptr-testing-library) is a great library with the same purpose but with the same API as the `testing-library` family. It works by injecting `dom-testing-library` into the browser, and expose the API. Since `dom-testing-library` uses a pure JavaScript implementation of finding the `role` and `name` of the DOM element, it could fail in some cases where the the implementation doesn't cover. `puppeteer-testing-library` uses Chrome's `ComputedAccessibilityInfo` API to get their accessibility roles and names directly from the browser, hence could be a lot more predictable and match how the browser interprets the properties.
+
+`puppeteer-testing-library` also uses a simmer but more powerful API to query the elements. Instead of choosing from the `findBy*` family, we can just use `find`/`findAll` to query almost all the elements.
+
+[`jest-dom`](https://github.com/testing-library/jest-dom) is often used with the Testing Library family, to provide helpful custom Jest matchers. However, `jest-dom` doesn't support Puppeteer for now, which makes asserting difficult and tedious. `puppeteer-testing-library` bundles with a set of custom matchers which under the hood matches how the query system works, so that you can get the asserting for free with the same set of API.
+
 ## How to write queries
 
 Writing accessible queries is a lot easier with the help of browser's devtools. Since `puppeteer-testing-library` only works with Chromium browsers, it's natural to also use the Chrome devtools.
@@ -329,4 +337,17 @@ Test if the element has focus, i.e. if it is the `document.activeElement`.
 
 ```js
 await expect(elementHandle).toHaveFocus();
+```
+
+#### `toThrowQueryEmptyError()`
+
+Test if the query throw the `QueryEmptyError`. It's just a syntax sugar to manually catch the error and checking if the error is `QueryEmptyError`.
+
+```js
+const findAllButton = findAll(
+  { role: 'button', name: 'not in the DOM' },
+  { timeout: 0 }
+);
+
+await expect(findAllButton).toThrowQueryEmptyError();
 ```

@@ -94,12 +94,13 @@ it('should throw errors when the elements are not found', async () => {
     expect(err.name).toBe('QueryEmptyError');
   }
 
-  let findButtonPromise = find({ role: 'button' }, { timeout: 0 });
-  await expect(findButtonPromise).rejects.toThrow(QueryEmptyError);
-  await expect(findButtonPromise).rejects.toThrow(QueryError);
-  await expect(findButtonPromise).rejects.toThrowErrorMatchingInlineSnapshot(
+  let findAllButtonPromise = findAll({ role: 'button' }, { timeout: 0 });
+  await expect(findAllButtonPromise).rejects.toThrow(QueryEmptyError);
+  await expect(findAllButtonPromise).rejects.toThrow(QueryError);
+  await expect(findAllButtonPromise).rejects.toThrowErrorMatchingInlineSnapshot(
     `"Unable to find any nodes."`
   );
+  await expect(findAllButtonPromise).toThrowQueryEmptyError();
 
   await html`
     <button>button 1</button>
@@ -114,7 +115,7 @@ it('should throw errors when the elements are not found', async () => {
     expect(err.name).toBe('QueryMultipleError');
   }
 
-  findButtonPromise = find({ role: 'button' }, { timeout: 0 });
+  const findButtonPromise = find({ role: 'button' }, { timeout: 0 });
   await expect(findButtonPromise).rejects.toThrow(QueryError);
 });
 
