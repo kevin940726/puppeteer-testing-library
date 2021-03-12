@@ -106,6 +106,29 @@ module.exports = {
 };
 ```
 
+## How to write queries
+
+Writing accessible queries is a lot easier with the help of browser's devtools. Since `puppeteer-testing-library` only works with Chromium browsers, it's natural to also use the Chrome devtools.
+
+Right click the element you want to query, and select "Inspect element". Let's say we want to select this button element with the text "Save settings".
+
+![Right click the element and select "Inspect element"](https://user-images.githubusercontent.com/7753001/110895070-03c96380-8334-11eb-926a-2be9dca11f35.png)
+
+The browser will open the devtools. You can see your element being highlighted in the "Elements" panel. Under "Accessibility" -> "Computed Properties", you can then see all the accessible properties of the element.
+
+!["Elements" -> "Accessibility" -> "Computed Properties" in devtools](https://user-images.githubusercontent.com/7753001/110896540-ca462780-8336-11eb-9dda-8f51d3f423cf.png)
+
+The most useful ones are `name` and `role`. Making a query is as simple as copying the values of them into your query.
+
+```js
+const saveSettingsButton = await find({
+  role: 'button',
+  name: 'Save settings',
+});
+```
+
+Sometimes, there are more than one result of the query, and `puppeteer-testing-library` will throw an error if you're using `find`. You can fix that by adding more accessible properties into the query to narrow down the results. You can see the full list of the available properties in the [Puppeteer accessibility API doc](https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#accessibilitysnapshotoptions).
+
 ## API
 
 #### `configure({ page?: Page = global.page, timeout?: number = 3000 })`
