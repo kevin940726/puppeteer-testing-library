@@ -2,7 +2,7 @@
 
 Custom queries and Jest matchers for Puppeteer with enforced best practices.
 
-## Usage
+## Quick Start
 
 ```js
 import { find } from 'puppeteer-testing-library';
@@ -20,7 +20,26 @@ const submitButton = await find({ role: 'button', name: 'Submit' });
 await submitButton.click();
 ```
 
-## Installation
+- [Puppeteer Testing Library](#puppeteer-testing-library)
+  - [Quick Start](#quick-start)
+  - [Installation and Usage](#installation-and-usage)
+  - [Difference between `pptr-testing-library`](#difference-between-pptr-testing-library)
+  - [How to write queries](#how-to-write-queries)
+  - [API](#api)
+      - [`configure({ page?: Page = global.page, timeout?: number = 3000 })`](#configure-page-page--globalpage-timeout-number--3000-)
+    - [Queries](#queries)
+      - [`find(query: Query, options: FindOptions): Promise<ElementHandle>`](#findquery-query-options-findoptions-promiseelementhandle)
+        - [`FindOptions`](#findoptions)
+      - [`findAll(query: Query, options: FindOptions): Promise<ElementHandle[]>`](#findallquery-query-options-findoptions-promiseelementhandle)
+      - [`Query`](#query)
+    - [Matchers](#matchers)
+      - [`toMatchQuery(query: Query)`](#tomatchqueryquery-query)
+      - [`toBeElement(expectedElement: ElementHandle)`](#tobeelementexpectedelement-elementhandle)
+      - [`toBeVisible()`](#tobevisible)
+      - [`toHaveFocus()`](#tohavefocus)
+      - [`toThrowQueryEmptyError()`](#tothrowqueryemptyerror)
+
+## Installation and Usage
 
 ```sh
 npm install --save-dev puppeteer-testing-library
