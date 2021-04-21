@@ -2,8 +2,6 @@ import { ElementHandle } from 'puppeteer';
 import '../extend-expect';
 import { html } from './test-utils';
 
-jest.setTimeout(100000000);
-
 describe('toMatchQuery', () => {
   it('Should match query', async () => {
     await html`<button id="button" aria-pressed="false">My button</button>`;

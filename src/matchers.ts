@@ -1,7 +1,6 @@
-import { ElementHandle, Page } from 'puppeteer';
+import { ElementHandle } from 'puppeteer';
 import diff from 'jest-diff';
 import { Query, ElementWithComputedAccessibilityInfo } from './types';
-import { QueryEmptyError, QueryMultipleError } from './query-error';
 
 async function toMatchQuery(
   this: jest.MatcherContext,
