@@ -69,16 +69,13 @@ async function toMatchQuery(
           return [
             this.utils.matcherHint('toMatchQuery', 'element', 'query', options),
             '\n',
-
-            diffString && diffString.includes('- Expect')
+            ...(diffString && diffString.includes('- Expect')
               ? ['Difference:', '\n', diffString]
               : [
                   `Expected: ${this.utils.printExpected(query)}`,
                   `Received: ${this.utils.printReceived(snapshot)}`,
-                ],
-          ]
-            .flat()
-            .join('\n');
+                ]),
+          ].join('\n');
         },
   };
 }
@@ -117,12 +114,15 @@ async function toBeVisible(
   this: jest.MatcherContext,
   elementHandle: ElementHandle
 ) {
-  const pass = await elementHandle.evaluate((node) => {
-    const style = window.getComputedStyle(node);
-    if (!style || style.visibility === 'hidden') return false;
-    const rect = node.getBoundingClientRect();
-    return !!(rect.top || rect.bottom || rect.width || rect.height);
-  });
+  let pass = false;
+  try {
+    pass = await elementHandle.evaluate((node) => {
+      const style = window.getComputedStyle(node);
+      if (!style || style.visibility === 'hidden') return false;
+      const rect = node.getBoundingClientRect();
+      return !!(rect.top || rect.bottom || rect.width || rect.height);
+    });
+  } catch {}
 
   const options = {
     isNot: this.isNot,
@@ -134,7 +134,7 @@ async function toBeVisible(
     message: () =>
       [
         this.utils.matcherHint('toBeVisible', 'element', '', options),
-        `Expected the element to${this.isNot ? ' not ' : ' '}be visible.`,
+        `Expected the element to${pass ? ' not ' : ' '}be visible.`,
       ].join('\n'),
   };
 }

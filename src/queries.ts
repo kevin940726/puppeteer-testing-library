@@ -25,7 +25,10 @@ async function queryAll(
     );
   }
 
-  const elementsHandle = await page.evaluateHandle(
+  const rootHandle = await (root || page.evaluateHandle('document'));
+  const executionContext = rootHandle!.executionContext();
+
+  const elementsHandle = await executionContext.evaluateHandle(
     (_root, _selector, _role, _name, _text, _visible) => {
       return (Array.from(
         (_root || document).querySelectorAll(_selector)
@@ -142,12 +145,12 @@ async function find(query: Query, options: FindOptions = {}) {
   const elements = await findAll(query, options);
 
   if (elements.length > 1) {
+    await Promise.all(elements.map((elementHandle) => elementHandle.dispose()));
+
     throw new QueryMultipleError('Found more than one node.');
   }
 
-  const [element, ...rest] = elements;
-
-  await Promise.all(rest.map((elementHandle) => elementHandle.dispose()));
+  const [element] = elements;
 
   return element;
 }
