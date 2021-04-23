@@ -1,6 +1,6 @@
 {
   "name": "puppeteer-testing-library",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Custom queries and Jest matchers for Puppeteer with enforced best practices",
   "main": "dist/index.js",
   "repository": "https://github.com/kevin940726/puppeteer-testing-library.git",
