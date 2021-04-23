@@ -9,3 +9,6 @@ export async function html(strings: TemplateStringsArray) {
     document.body.innerHTML = _html;
   }, string);
 }
+
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));

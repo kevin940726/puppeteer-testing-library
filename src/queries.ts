@@ -1,7 +1,7 @@
-import { setTimeout, clearTimeout } from 'timers';
 import { ElementHandle, Page } from 'puppeteer';
 import { QueryError, QueryEmptyError, QueryMultipleError } from './query-error';
 import { config } from './configure';
+import { waitFor } from './wait-for';
 import { Query, ElementWithComputedAccessibilityInfo } from './types';
 
 interface QueryOptions {
@@ -113,32 +113,18 @@ async function findAll(
   query: Query,
   { timeout = config.timeout, ...options }: FindOptions = {}
 ) {
-  let elements = await queryAll(query, options);
-  let hasTimeout = !timeout;
-  let timeoutID;
-
-  if (timeout) {
-    timeoutID = setTimeout(() => {
-      hasTimeout = true;
-    }, timeout);
-  }
-
-  while (!elements.length && !hasTimeout) {
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    elements = await queryAll(query, options);
-  }
-
-  if (!elements.length) {
-    throw new QueryEmptyError(
-      'Unable to find any nodes' + (timeout ? ` within ${timeout}ms.` : '.')
-    );
-  }
-
-  if (timeoutID) {
-    clearTimeout(timeoutID);
-  }
-
-  return elements;
+  return waitFor(
+    async () => {
+      const elements = await queryAll(query, options);
+      if (!elements.length) {
+        throw new QueryEmptyError(
+          'Unable to find any nodes' + (timeout ? ` within ${timeout}ms.` : '.')
+        );
+      }
+      return elements;
+    },
+    { timeout }
+  );
 }
 
 async function find(query: Query, options: FindOptions = {}) {
