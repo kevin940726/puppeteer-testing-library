@@ -38,6 +38,7 @@ await submitButton.click();
       - [`toBeVisible()`](#tobevisible)
       - [`toHaveFocus()`](#tohavefocus)
       - [`toThrowQueryEmptyError()`](#tothrowqueryemptyerror)
+      - [`toBeFound(findOptions: FindOptions)`](#tobefoundfindoptions-findoptions)
 
 ## Installation and Usage
 
@@ -369,4 +370,19 @@ const findAllButton = findAll(
 );
 
 await expect(findAllButton).toThrowQueryEmptyError();
+```
+
+#### `toBeFound(findOptions: FindOptions)`
+
+Test if the [`query`](#query) can be found eventually within certain timeout. This is basically the same as [`find`](#findquery-query-options-findoptions-promiseelementhandle) but more semantically correct. It is also useful for asserting when the element will only be disappearing after a certain amount of time (e.g. transitions or animations) with the `.not` prefix.
+
+```js
+// Expect the button can be found within the default timeout (3s)
+await expect({ role: 'button', name: 'Button' }).toBeFound();
+
+// Expect the textbox not to be found within the default timeout (3s)
+await expect({ role: 'textbox' }).not.toBeFound();
+
+// Expect the button to be found within 100ms
+await expect({ role: 'button' }).toBeFound({ timeout: 100 });
 ```

@@ -1,6 +1,7 @@
 import { ElementHandle } from 'puppeteer';
+import stripAnsi from 'strip-ansi';
 import '../extend-expect';
-import { html } from './test-utils';
+import { html, sleep } from './test-utils';
 
 describe('toMatchQuery', () => {
   it('Should match query', async () => {
@@ -143,5 +144,74 @@ describe('toHaveFocus', () => {
     await expect(link).toHaveFocus();
     await page.keyboard.press('Tab');
     await expect(body).toHaveFocus();
+  });
+});
+
+describe('toBeFound', () => {
+  it('should find the element', async () => {
+    await html`<button>Button</button>`;
+
+    await expect({
+      role: 'button',
+      name: 'Button',
+    }).toBeFound();
+
+    const expectPromise = expect({
+      role: 'button',
+      name: 'Button 2',
+    }).toBeFound();
+
+    await sleep(100);
+
+    await html`<button>Button 2</button>`;
+
+    await expectPromise;
+  });
+
+  it('should not find the element', async () => {
+    await html`<button>Button</button>`;
+
+    const expectPromise = expect({
+      role: 'button',
+      name: 'Button',
+    }).not.toBeFound();
+
+    await sleep(100);
+
+    await html``;
+
+    await expectPromise;
+
+    await expect({ role: 'button', name: 'Button 2' }).not.toBeFound();
+  });
+
+  it('should throw errors', async () => {
+    try {
+      await expect({ role: 'button', name: 'Button' }).toBeFound({
+        timeout: 100,
+      });
+    } catch (err) {
+      expect(stripAnsi(err.toString())).toMatchInlineSnapshot(`
+        "Error: expect(query).toBeFound(findOptions)
+
+        Instead, it throws the following error:
+        QueryEmptyError: Unable to find any nodes."
+      `);
+    }
+
+    await html`<button>Button</button>`;
+
+    try {
+      await expect({ role: 'button', name: 'Button' }).not.toBeFound({
+        timeout: 100,
+      });
+    } catch (err) {
+      expect(stripAnsi(err.toString())).toMatchInlineSnapshot(`
+        "Error: expect(query).not.toBeFound(findOptions)
+
+        Instead, it throws the following error:
+        QueryFoundError: Found an element matching the query."
+      `);
+    }
   });
 });

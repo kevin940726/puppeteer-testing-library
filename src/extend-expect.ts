@@ -1,5 +1,5 @@
 import { ElementHandle, Page } from 'puppeteer';
-import { Query } from './types';
+import { Query, FindOptions } from './types';
 import * as matchers from './matchers';
 
 declare global {
@@ -13,6 +13,7 @@ declare global {
       toBeVisible(): Promise<R>;
       toHaveFocus(): Promise<R>;
       toThrowQueryEmptyError(): Promise<R>;
+      toBeFound(options?: FindOptions): Promise<R>;
     }
   }
 }

@@ -1,6 +1,13 @@
 import { ElementHandle } from 'puppeteer';
 import diff from 'jest-diff';
-import { Query, ElementWithComputedAccessibilityInfo } from './types';
+import { find } from './queries';
+import { waitFor } from './wait-for';
+import { QueryError } from './query-error';
+import {
+  Query,
+  ElementWithComputedAccessibilityInfo,
+  FindOptions,
+} from './types';
 
 async function toMatchQuery(
   this: jest.MatcherContext,
@@ -208,10 +215,70 @@ async function toThrowQueryEmptyError(
   };
 }
 
+async function toBeFound(
+  this: jest.MatcherContext,
+  query: Query,
+  findOptions: FindOptions = {}
+): Promise<jest.CustomMatcherResult> {
+  let pass: boolean;
+  let error: Error;
+
+  try {
+    pass = await waitFor(
+      async () => {
+        try {
+          await find(query, { ...findOptions, timeout: 0 });
+
+          if (this.isNot) {
+            throw true;
+          } else {
+            return true;
+          }
+        } catch (err) {
+          if (err === true) {
+            throw new QueryError(
+              'QueryFoundError',
+              'Found an element matching the query.'
+            );
+          }
+          if (err instanceof QueryError) {
+            if (this.isNot) {
+              return false;
+            } else {
+              throw err;
+            }
+          }
+          throw err;
+        }
+      },
+      { timeout: findOptions.timeout }
+    );
+  } catch (err) {
+    pass = err.name === 'QueryFoundError';
+    error = err;
+  }
+
+  const options = {
+    isNot: this.isNot,
+    promise: this.promise,
+  };
+
+  return {
+    pass,
+    message: () =>
+      [
+        this.utils.matcherHint('toBeFound', 'query', 'findOptions', options),
+        '',
+        ...(error ? ['Instead, it throws the following error:', error] : []),
+      ].join('\n'),
+  };
+}
+
 export {
   toMatchQuery,
   toBeElement,
   toBeVisible,
   toHaveFocus,
   toThrowQueryEmptyError,
+  toBeFound,
 };

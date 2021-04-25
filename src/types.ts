@@ -1,3 +1,5 @@
+import { ElementHandle, Page } from 'puppeteer';
+
 interface OptionalQuery {
   role?: string;
   name?: string | RegExp;
@@ -37,4 +39,13 @@ export type Query =
 export interface ElementWithComputedAccessibilityInfo extends HTMLElement {
   computedName: string;
   computedRole: string;
+}
+
+export interface QueryOptions {
+  root?: ElementHandle;
+  page?: Page;
+  visible?: boolean;
+}
+export interface FindOptions extends QueryOptions {
+  timeout?: number | false;
 }
