@@ -1,17 +1,15 @@
-import { ElementHandle, Page } from 'puppeteer';
 import { QueryError, QueryEmptyError, QueryMultipleError } from './query-error';
 import { config } from './configure';
 import { waitFor } from './wait-for';
-import { Query, ElementWithComputedAccessibilityInfo } from './types';
+import {
+  Query,
+  ElementWithComputedAccessibilityInfo,
+  QueryOptions,
+  FindOptions,
+} from './types';
 
-interface QueryOptions {
-  root?: ElementHandle;
-  page?: Page;
-  visible?: boolean;
-}
-
-interface FindOptions extends QueryOptions {
-  timeout?: number | false;
+interface NodeWithControl extends Node {
+  control?: Element;
 }
 
 async function queryAll(
@@ -30,19 +28,52 @@ async function queryAll(
 
   const elementsHandle = await executionContext.evaluateHandle(
     (_root, _selector, _role, _name, _text, _visible) => {
+      function getFlatString(text: string): string {
+        return text.replace(/\s+/g, ' ');
+      }
+
       return (Array.from(
         (_root || document).querySelectorAll(_selector)
       ) as ElementWithComputedAccessibilityInfo[])
         .filter((node) => !_role || node.computedRole === _role)
-        .filter((node) =>
-          !_name || _name.type === 'RegExp'
-            ? RegExp(_name.source, _name.flags).test(node.computedName)
-            : node.computedName === _name
-        )
-        .filter((node) =>
-          !_text || _text.type === 'RegExp'
-            ? RegExp(_text.source, _text.flags).test(node.textContent || '')
-            : node.textContent === _text
+        .filter((node) => {
+          if (!_name) return true;
+
+          // Manually compute the accessible name for elements with <label>
+          // Chromium has a bug in `computedName` causes it to return an empty string
+          let computedName = '';
+          if (
+            node
+              .getAttribute('aria-labelledby')
+              ?.split(' ')
+              .some((id) => document.getElementById(id))
+          ) {
+            computedName = node.computedName;
+          } else if (node.getAttribute('aria-label')) {
+            computedName = node.computedName;
+          } else if (node.labels?.length) {
+            const labels = Array.from(node.labels);
+            computedName = labels
+              .filter((label: NodeWithControl) => label.control === node)
+              .map((label) => getFlatString(label.textContent || ''))
+              .filter((text) => !!text)
+              .join(' ')
+              .trim();
+          } else {
+            computedName = node.computedName;
+          }
+
+          if (_name.type === 'RegExp') {
+            return RegExp(_name.source, _name.flags).test(computedName);
+          }
+          return computedName === _name;
+        })
+        .filter(
+          (node) =>
+            !_text ||
+            (_text.type === 'RegExp'
+              ? RegExp(_text.source, _text.flags).test(node.textContent || '')
+              : node.textContent === _text)
         )
         .filter((node) => {
           if (!_visible) return true;

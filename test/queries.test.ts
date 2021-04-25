@@ -148,3 +148,48 @@ it('should only find visible elements by default', async () => {
     await expect(button).not.toBeVisible();
   }
 });
+
+it('should handle inputs and labels', async () => {
+  await html`
+    <label for="search-box">Search</label>
+    <input type="search" id="search-box" />
+  `;
+
+  await page.evaluate(() => {
+    const input = document.querySelector('input') as any;
+    return input.labels;
+  });
+
+  await expect({ role: 'searchbox', name: 'Search' }).toBeFound();
+
+  await html`
+    <label id="search-box-label">Search</label>
+    <input type="search" aria-labelledby="search-box-label" />
+  `;
+
+  await expect({ role: 'searchbox', name: 'Search' }).toBeFound();
+
+  await html`
+    <label>
+      Search
+      <input type="search" />
+    </label>
+  `;
+
+  await expect({ role: 'searchbox', name: 'Search' }).toBeFound();
+
+  await html`
+    <label for="text-box">Title</label>
+    <input type="text" id="text-box" />
+  `;
+
+  await expect({ role: 'textbox', name: 'Title' }).toBeFound();
+
+  await html`
+    <label for="text-box">Label 1</label>
+    <label for="text-box">Label 2</label>
+    <input type="text" id="text-box" />
+  `;
+
+  await expect({ role: 'textbox', name: 'Label 1 Label 2' }).toBeFound();
+});

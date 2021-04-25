@@ -39,6 +39,7 @@ export type Query =
 export interface ElementWithComputedAccessibilityInfo extends HTMLElement {
   computedName: string;
   computedRole: string;
+  labels?: NodeList;
 }
 
 export interface QueryOptions {
