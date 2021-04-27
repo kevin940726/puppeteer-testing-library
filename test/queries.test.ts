@@ -1,3 +1,4 @@
+import { ElementHandle } from 'puppeteer';
 import {
   find,
   findAll,
@@ -155,11 +156,6 @@ it('should handle inputs and labels', async () => {
     <input type="search" id="search-box" />
   `;
 
-  await page.evaluate(() => {
-    const input = document.querySelector('input') as any;
-    return input.labels;
-  });
-
   await expect({ role: 'searchbox', name: 'Search' }).toBeFound();
 
   await html`
@@ -192,4 +188,21 @@ it('should handle inputs and labels', async () => {
   `;
 
   await expect({ role: 'textbox', name: 'Label 1 Label 2' }).toBeFound();
+});
+
+it('should handle iframes', async () => {
+  await html`<iframe srcdoc="<button>Button</button>" />`;
+
+  let iframe = (await page.$('iframe')) as ElementHandle;
+
+  await expect({ role: 'button', name: 'Button' }).toBeFound({ root: iframe });
+
+  await page.evaluate(() => {
+    setTimeout(() => {
+      const iframe = document.querySelector('iframe')!;
+      iframe.srcdoc = '<input type="search" />';
+    }, 100);
+  });
+
+  await expect({ role: 'searchbox' }).toBeFound({ root: iframe });
 });

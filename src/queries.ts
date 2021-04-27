@@ -1,3 +1,4 @@
+import { ElementHandle } from 'puppeteer';
 import { QueryError, QueryEmptyError, QueryMultipleError } from './query-error';
 import { config } from './configure';
 import { waitFor } from './wait-for';
@@ -16,14 +17,25 @@ async function queryAll(
   { role, name, text, selector, ...properties }: Query,
   { root, page = config.page, visible = true }: QueryOptions = {}
 ) {
-  if (!role && !name && !selector && !text) {
-    throw new QueryError(
-      'QueryParametersError',
-      'At least one of "role", "name", "text", or "selector" is required in the query.'
-    );
+  let rootHandle = (await (root ||
+    page.evaluateHandle('document'))) as ElementHandle;
+
+  // Get the content frame document if the root is an iframe.
+  if (await rootHandle.evaluate((node) => node.tagName === 'IFRAME')) {
+    const contentFrame = await rootHandle.contentFrame();
+    const contentFrameDocument = (await contentFrame?.evaluateHandle(
+      'document'
+    )) as ElementHandle;
+    if (!contentFrameDocument) {
+      throw new QueryError(
+        'QueryIframeError',
+        'Content frame document is not available in the iframe.'
+      );
+    }
+    rootHandle = contentFrameDocument;
+    root = contentFrameDocument;
   }
 
-  const rootHandle = await (root || page.evaluateHandle('document'));
   const executionContext = rootHandle!.executionContext();
 
   const elementsHandle = await executionContext.evaluateHandle(
@@ -144,6 +156,13 @@ async function findAll(
   query: Query,
   { timeout = config.timeout, ...options }: FindOptions = {}
 ) {
+  if (!query.role && !query.name && !query.selector && !query.text) {
+    throw new QueryError(
+      'QueryParametersError',
+      'At least one of "role", "name", "text", or "selector" is required in the query.'
+    );
+  }
+
   return waitFor(
     async () => {
       const elements = await queryAll(query, options);
