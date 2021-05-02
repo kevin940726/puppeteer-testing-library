@@ -119,6 +119,32 @@ describe('toBeVisible', () => {
     await expect(parentDisplayNoneButton).not.toBeVisible();
     await expect(parentVisibilityHiddenButton).not.toBeVisible();
   });
+
+  it('should eventually match the visible element', async () => {
+    await html`<button hidden id="button">Button</button>`;
+
+    const button = await page.$('#button');
+
+    let promise = expect(button).toBeVisible();
+
+    await sleep(100);
+
+    await button!.evaluate((node) => {
+      node.hidden = false;
+    });
+
+    await promise;
+
+    promise = expect(button).not.toBeVisible();
+
+    await sleep(100);
+
+    await button!.evaluate((node) => {
+      node.hidden = true;
+    });
+
+    await promise;
+  });
 });
 
 describe('toHaveFocus', () => {
@@ -144,6 +170,28 @@ describe('toHaveFocus', () => {
     await expect(link).toHaveFocus();
     await page.keyboard.press('Tab');
     await expect(body).toHaveFocus();
+  });
+
+  it('should eventually match the focused element', async () => {
+    await html`<button id="button">Button</button>`;
+
+    const button = await page.$('#button');
+
+    let promise = expect(button).toHaveFocus();
+
+    await sleep(100);
+
+    await button!.focus();
+
+    await promise;
+
+    promise = expect(button).not.toHaveFocus();
+
+    await sleep(100);
+
+    await page.keyboard.press('Tab');
+
+    await promise;
   });
 });
 

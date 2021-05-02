@@ -119,17 +119,28 @@ async function toBeElement(
 
 async function toBeVisible(
   this: jest.MatcherContext,
-  elementHandle: ElementHandle
+  elementHandle: ElementHandle,
+  findOptions: FindOptions
 ) {
   let pass = false;
+  let error: Error;
+
   try {
-    pass = await elementHandle.evaluate((node) => {
-      const style = window.getComputedStyle(node);
-      if (!style || style.visibility === 'hidden') return false;
-      const rect = node.getBoundingClientRect();
-      return !!(rect.top || rect.bottom || rect.width || rect.height);
-    });
-  } catch {}
+    await waitFor(async () => {
+      pass = await elementHandle.evaluate((node) => {
+        const style = window.getComputedStyle(node);
+        if (!style || style.visibility === 'hidden') return false;
+        const rect = node.getBoundingClientRect();
+        return !!(rect.top || rect.bottom || rect.width || rect.height);
+      });
+
+      if (pass === this.isNot) {
+        throw false;
+      }
+    }, findOptions);
+  } catch (err) {
+    error = err;
+  }
 
   const options = {
     isNot: this.isNot,
@@ -139,20 +150,41 @@ async function toBeVisible(
   return {
     pass,
     message: () =>
-      [
-        this.utils.matcherHint('toBeVisible', 'element', '', options),
-        `Expected the element to${pass ? ' not ' : ' '}be visible.`,
-      ].join('\n'),
+      error
+        ? [
+            this.utils.matcherHint('toBeVisible', 'element', '', options),
+            `Instead, it throws the following error:`,
+            '',
+            error,
+          ].join('\n')
+        : [
+            this.utils.matcherHint('toBeVisible', 'element', '', options),
+            `Expected the element to${pass ? ' not ' : ' '}be visible.`,
+          ].join('\n'),
   };
 }
 
 async function toHaveFocus(
   this: jest.MatcherContext,
-  elementHandle: ElementHandle
+  elementHandle: ElementHandle,
+  findOptions: FindOptions
 ) {
-  const pass = await elementHandle.evaluate(
-    (node) => node === document.activeElement
-  );
+  let pass = false;
+  let error: Error;
+
+  try {
+    await waitFor(async () => {
+      pass = await elementHandle.evaluate(
+        (node) => node === document.activeElement
+      );
+
+      if (this.isNot === pass) {
+        throw false;
+      }
+    }, findOptions);
+  } catch (err) {
+    error = err;
+  }
 
   const options = {
     isNot: this.isNot,
@@ -162,10 +194,17 @@ async function toHaveFocus(
   return {
     pass,
     message: () =>
-      [
-        this.utils.matcherHint('toHaveFocus', 'element', '', options),
-        `Expected the element to${this.isNot ? ' not ' : ' '}have focus.`,
-      ].join('\n'),
+      error
+        ? [
+            this.utils.matcherHint('toHaveFocus', 'element', '', options),
+            `Instead, it throws the following error:`,
+            '',
+            error,
+          ].join('\n')
+        : [
+            this.utils.matcherHint('toHaveFocus', 'element', '', options),
+            `Expected the element to${this.isNot ? ' not ' : ' '}have focus.`,
+          ].join('\n'),
   };
 }
 
