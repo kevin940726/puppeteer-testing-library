@@ -1,62 +1,72 @@
 import { setTimeout, clearTimeout } from 'timers';
 import { config } from './configure';
+import { stackPrettifier } from './query-error';
 
 interface WaitOptions {
   timeout?: number | false;
 }
 
-const INITIAL_RESULT = {} as const;
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function waitFor<Type>(
   callback: () => Promise<Type>,
   { timeout = config.timeout }: WaitOptions = {}
 ): Promise<Type> {
-  return new Promise(async (resolve, reject) => {
-    let timerID;
-    let result: Type | typeof INITIAL_RESULT = INITIAL_RESULT;
-    let error: Error;
-    let hasRejected = false;
-    const hasTimeout = timeout > 0;
+  const prettifyStack = stackPrettifier(new Error());
 
-    if (hasTimeout) {
-      timerID = setTimeout(() => {
-        reject(error);
-        hasRejected = true;
-      }, timeout as number);
-    }
+  let timerID: NodeJS.Timeout;
+  const hasTimeout = timeout > 0;
+  let isSettled = false;
+  let revokeTimeout: () => void;
 
-    while (result === INITIAL_RESULT) {
-      try {
-        result = await callback();
-      } catch (err) {
-        error = err;
+  const promises: Promise<Type>[] = [
+    new Promise((resolve, reject) => {
+      revokeTimeout = reject;
 
-        if (!hasTimeout) {
-          reject(error);
-          hasRejected = true;
-          break;
-        }
-      } finally {
-        if (hasRejected) {
-          break;
-        }
+      async function runOnce() {
+        try {
+          const result = await callback();
 
-        if (hasTimeout && result === INITIAL_RESULT) {
-          await new Promise((resolve) => setTimeout(resolve, 50));
+          resolve(result);
+        } catch (err) {
+          reject(err);
         }
       }
-    }
 
-    if (hasRejected) {
-      return;
-    }
+      if (hasTimeout) {
+        timerID = setTimeout(runOnce, timeout as number);
+      } else {
+        runOnce();
+      }
+    }),
+  ];
 
-    if (timerID) {
-      clearTimeout(timerID);
-    }
+  if (hasTimeout) {
+    promises.push(
+      new Promise(async (resolve) => {
+        do {
+          try {
+            const result = await callback();
 
-    resolve(result as Type);
-  });
+            resolve(result);
+            clearTimeout(timerID);
+            revokeTimeout?.();
+            break;
+          } catch (err) {
+            await sleep(50);
+          }
+        } while (!isSettled);
+      })
+    );
+  }
+
+  return Promise.race(promises)
+    .finally(() => {
+      isSettled = true;
+    })
+    .catch((err) => {
+      throw prettifyStack(err);
+    });
 }
 
 export { waitFor };

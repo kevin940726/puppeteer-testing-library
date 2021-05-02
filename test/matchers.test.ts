@@ -197,6 +197,14 @@ describe('toBeFound', () => {
         Instead, it throws the following error:
         QueryEmptyError: Unable to find any nodes."
       `);
+
+      const trace = err.stack.slice(
+        err.stack.indexOf(err.message) + err.message.length + 1
+      );
+
+      expect(
+        trace.startsWith(`    at Object.<anonymous> (${__filename}:`)
+      ).toBe(true);
     }
 
     await html`<button>Button</button>`;
@@ -212,6 +220,14 @@ describe('toBeFound', () => {
         Instead, it throws the following error:
         QueryFoundError: Found an element matching the query."
       `);
+
+      const trace = err.stack.slice(
+        err.stack.indexOf(err.message) + err.message.length + 1
+      );
+
+      expect(
+        trace.startsWith(`    at Object.<anonymous> (${__filename}:`)
+      ).toBe(true);
     }
   });
 });

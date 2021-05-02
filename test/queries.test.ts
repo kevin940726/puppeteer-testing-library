@@ -206,3 +206,14 @@ it('should handle iframes', async () => {
 
   await expect({ role: 'searchbox' }).toBeFound({ root: iframe });
 });
+
+it('should persist stack trace', async () => {
+  try {
+    await find({ role: 'button' }, { timeout: 100 });
+  } catch (err) {
+    expect(
+      err.stack.startsWith(`Unable to find any nodes within 100ms.
+    at Object.<anonymous> (${__filename}:`)
+    ).toBe(true);
+  }
+});

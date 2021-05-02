@@ -1,7 +1,4 @@
-import path from 'path';
-
-const PACKAGE_NAME = 'puppeteer-testing-library';
-
+const INTERNAL_STACK_REGEX = /puppeteer-testing-library\/dist\//;
 class QueryError extends Error {
   constructor(name: string, message: string) {
     super(message);
@@ -11,21 +8,6 @@ class QueryError extends Error {
     }
 
     this.name = name;
-
-    const stack = this.stack || '';
-    const lines = stack.split('\n');
-    const tracesStartIndex = lines.findIndex((line) =>
-      line.startsWith('    at')
-    );
-    let traces = lines.slice(tracesStartIndex).reverse();
-    const firstInternalIndex = traces.findIndex((line) =>
-      line.includes(path.join(PACKAGE_NAME, 'dist'))
-    );
-    if (firstInternalIndex !== -1) {
-      traces = traces.slice(0, firstInternalIndex);
-    }
-    traces = traces.reverse();
-    this.stack = [...lines.slice(0, tracesStartIndex), ...traces].join('\n');
   }
 }
 
@@ -41,4 +23,33 @@ class QueryMultipleError extends QueryError {
   }
 }
 
-export { QueryError, QueryEmptyError, QueryMultipleError };
+function stackPrettifier(parentError: Error) {
+  const parentStacks = parentError.stack?.split('\n').slice(1) || [];
+
+  return (error: Error | undefined) => {
+    if (!error) return error;
+
+    const stacks = error.stack?.split('\n') || [];
+
+    const stackLines = Array.from(new Set([...stacks, ...parentStacks]));
+    const stack = stackLines.join('\n');
+
+    const messageLastIndex =
+      stack.indexOf(error.message) + error.message.length + 1;
+    let traceLines = stack.slice(messageLastIndex).split('\n').reverse();
+
+    const firstInternalIndex = traceLines.findIndex((line) =>
+      INTERNAL_STACK_REGEX.test(line)
+    );
+    if (firstInternalIndex > -1) {
+      traceLines = traceLines.slice(0, firstInternalIndex);
+    }
+    const trace = traceLines.reverse().join('\n');
+
+    error.stack = [error.message, trace].join('\n');
+
+    return error;
+  };
+}
+
+export { QueryError, QueryEmptyError, QueryMultipleError, stackPrettifier };
