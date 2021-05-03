@@ -8,6 +8,8 @@ class QueryError extends Error {
     }
 
     this.name = name;
+
+    stackPrettifier()(this)?.stack;
   }
 }
 
@@ -23,8 +25,8 @@ class QueryMultipleError extends QueryError {
   }
 }
 
-function stackPrettifier(parentError: Error) {
-  const parentStacks = parentError.stack?.split('\n').slice(1) || [];
+function stackPrettifier(parentError?: Error) {
+  const parentStacks = parentError?.stack?.split('\n').slice(1) || [];
 
   return (error: Error | undefined) => {
     if (!error) return error;
@@ -46,7 +48,7 @@ function stackPrettifier(parentError: Error) {
     }
     const trace = traceLines.reverse().join('\n');
 
-    error.stack = [error.message, trace].join('\n');
+    error.stack = stack.slice(0, messageLastIndex) + trace;
 
     return error;
   };

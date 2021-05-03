@@ -212,8 +212,32 @@ it('should persist stack trace', async () => {
     await find({ role: 'button' }, { timeout: 100 });
   } catch (err) {
     expect(
-      err.stack.startsWith(`Unable to find any nodes within 100ms.
+      err.stack
+        .startsWith(`QueryEmptyError: Unable to find any nodes within 100ms.
     at Object.<anonymous> (${__filename}:`)
     ).toBe(true);
+  }
+
+  try {
+    await findAll({ role: 'button' }, { timeout: 100 });
+  } catch (err) {
+    expect(
+      err.stack
+        .startsWith(`QueryEmptyError: Unable to find any nodes within 100ms.
+    at Object.<anonymous> (${__filename}:`)
+    ).toBe(true);
+  }
+
+  await html`<button>Button 1</button><button>Button 2</button>`;
+
+  try {
+    await find({ role: 'button' }, { timeout: 100 });
+  } catch (err) {
+    const stacks = err.stack.split('\n');
+    expect(stacks[0]).toBe('QueryMultipleError: Found more than one node.');
+    expect(stacks[1]).toEqual(expect.stringContaining('(internal/'));
+    expect(stacks[2]).toEqual(
+      expect.stringContaining(`    at Object.<anonymous> (${__filename}:`)
+    );
   }
 });
