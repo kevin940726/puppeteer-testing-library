@@ -1,3 +1,4 @@
 test/
 jest-puppeteer.config.js
 tsconfig.json
+.github/
