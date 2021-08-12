@@ -1,7 +1,7 @@
 {
   "name": "puppeteer-testing-library",
   "version": "0.5.0",
-  "description": "Custom queries and Jest matchers for Puppeteer with enforced best practices",
+  "description": "Custom queries and Jest matchers for Puppeteer and Playwright with enforced best practices",
   "main": "dist/index.js",
   "repository": "https://github.com/kevin940726/puppeteer-testing-library.git",
   "author": "Kai Hao",
@@ -9,30 +9,22 @@
   "scripts": {
     "build": "tsc",
     "test": "jest",
-    "prepare": "yarn build && yarn test"
-  },
-  "peerDependencies": {
-    "puppeteer": "*"
+    "test:puppeteer": "jest",
+    "test:playwright": "PLAYWRIGHT=true jest",
+    "prepare": "yarn build && yarn test && yarn test:playwright"
   },
   "devDependencies": {
     "@types/jest": "^26.0.20",
     "@types/jest-environment-puppeteer": "^4.4.1",
     "jest": "^26.6.3",
+    "jest-playwright-preset": "^1.7.0",
     "jest-puppeteer": "^4.4.0",
+    "playwright": "^1.13.1",
     "prettier": "2.2.1",
     "puppeteer": "^9.0.0",
     "strip-ansi": "^7.0.0",
     "ts-jest": "^26.4.4",
     "typescript": "^4.1.3"
-  },
-  "jest": {
-    "preset": "jest-puppeteer",
-    "transform": {
-      "\\.(j|t)sx?$": "ts-jest"
-    },
-    "transformIgnorePatterns": [
-      "/node_modules/(?!(strip-ansi|ansi-regex)/)"
-    ]
   },
   "prettier": {
     "singleQuote": true
