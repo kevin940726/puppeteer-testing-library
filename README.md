@@ -1,6 +1,6 @@
 # Puppeteer Testing Library
 
-Custom queries and Jest matchers for Puppeteer with enforced best practices.
+Custom queries and Jest matchers for Puppeteer and Playwright with enforced best practices.
 
 ## Quick Start
 
@@ -73,6 +73,19 @@ const { launchArgs } = require('puppeteer-testing-library');
 
 module.exports = {
   launch: {
+    args: launchArgs(),
+  },
+};
+```
+
+`puppeteer-testing-library` also supports [Playwright](https://playwright.dev/) out of the box. The configuration is very similar with [`jest-playwright`](https://github.com/playwright-community/jest-playwright). (Note that it only supports chromium browsers at the time though.)
+
+```js
+// jest-playwright.config.js
+const { launchArgs } = require('puppeteer-testing-library');
+
+module.exports = {
+  launchOptions: {
     args: launchArgs(),
   },
 };
