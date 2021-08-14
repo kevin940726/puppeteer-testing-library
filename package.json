@@ -1,6 +1,6 @@
 {
   "name": "puppeteer-testing-library",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Custom queries and Jest matchers for Puppeteer and Playwright with enforced best practices",
   "main": "dist/index.js",
   "repository": "https://github.com/kevin940726/puppeteer-testing-library.git",
