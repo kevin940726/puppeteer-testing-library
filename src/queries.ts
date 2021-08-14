@@ -36,10 +36,8 @@ async function queryAll(
     root = contentFrameDocument;
   }
 
-  const executionContext = rootHandle!.executionContext();
-
-  const elementsHandle = await executionContext.evaluateHandle(
-    (_root, _selector, _role, _name, _text, _visible) => {
+  const elementsHandle = await rootHandle.evaluateHandle(
+    (_root, [_selector, _role, _name, _text, _visible]) => {
       function getFlatString(text: string): string {
         return text.replace(/\s+/g, ' ');
       }
@@ -95,29 +93,30 @@ async function queryAll(
           return !!(rect.top || rect.bottom || rect.width || rect.height);
         });
     },
-    root || '',
-    selector || '*',
-    role || '',
-    name instanceof RegExp
-      ? {
-          type: 'RegExp',
-          source: name.source,
-          flags: name.flags,
-        }
-      : name || '',
-    text instanceof RegExp
-      ? {
-          type: 'RegExp',
-          source: text.source,
-          flags: text.flags,
-        }
-      : text || '',
-    visible
+    [
+      selector || '*',
+      role || '',
+      name instanceof RegExp
+        ? {
+            type: 'RegExp',
+            source: name.source,
+            flags: name.flags,
+          }
+        : name || '',
+      text instanceof RegExp
+        ? {
+            type: 'RegExp',
+            source: text.source,
+            flags: text.flags,
+          }
+        : text || '',
+      visible,
+    ]
   );
 
   const elements = [];
   const elementsHandleProperties = await elementsHandle.getProperties();
-  elementsHandle.dispose();
+  await elementsHandle.dispose();
   for (const property of elementsHandleProperties.values()) {
     const element = property.asElement();
 
@@ -144,7 +143,7 @@ async function queryAll(
       ) {
         elements.push(element);
       } else {
-        element.dispose();
+        await element.dispose();
       }
     }
   }

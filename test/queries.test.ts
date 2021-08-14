@@ -235,9 +235,13 @@ it('should persist stack trace', async () => {
   } catch (err) {
     const stacks = err.stack.split('\n');
     expect(stacks[0]).toBe('QueryMultipleError: Found more than one node.');
-    // Internal stack trace will be dropped by Jest automatically
-    expect(stacks[1]).toEqual(expect.stringContaining('internal/process/'));
-    expect(stacks[2]).toEqual(
+    const lineWithFilename = stacks[stacks.length - 1];
+    // Playwright will only have 2 lines but Puppeteer will have 3
+    if (stacks.length === 3) {
+      // Internal stack trace will be dropped by Jest automatically
+      expect(stacks[1]).toEqual(expect.stringContaining('internal/process/'));
+    }
+    expect(lineWithFilename).toEqual(
       expect.stringContaining(`    at Object.<anonymous> (${__filename}:`)
     );
   }
