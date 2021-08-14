@@ -8,10 +8,10 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "test": "jest",
+    "test": "yarn test:puppeteer && yarn test:playwright",
     "test:puppeteer": "jest",
     "test:playwright": "PLAYWRIGHT=true jest",
-    "prepare": "yarn build && yarn test && yarn test:playwright"
+    "prepare": "yarn build && yarn test"
   },
   "devDependencies": {
     "@types/jest": "^26.0.20",
