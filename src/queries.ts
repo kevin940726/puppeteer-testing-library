@@ -1,6 +1,6 @@
 import { ElementHandle } from 'puppeteer';
 import { QueryError, QueryEmptyError, QueryMultipleError } from './query-error';
-import { config } from './configure';
+import { getConfig } from './configure';
 import { waitFor } from './wait-for';
 import {
   Query,
@@ -15,7 +15,7 @@ interface NodeWithControl extends Node {
 
 async function queryAll(
   { role, name, text, selector, ...properties }: Query,
-  { root, page = config.page, visible = true }: QueryOptions = {}
+  { root, page = getConfig().page, visible = true }: QueryOptions = {}
 ) {
   let rootHandle = (await (root ||
     page.evaluateHandle('document'))) as ElementHandle;
@@ -153,7 +153,7 @@ async function queryAll(
 
 async function findAll(
   query: Query,
-  { timeout = config.timeout, ...options }: FindOptions = {}
+  { timeout = getConfig().timeout, ...options }: FindOptions = {}
 ) {
   if (!query.role && !query.name && !query.selector && !query.text) {
     throw new QueryError(

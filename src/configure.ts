@@ -7,9 +7,7 @@ interface Configuration {
 
 const config: Configuration = {
   timeout: 3000,
-  get page() {
-    return (global as any).page;
-  },
+  page: (global as any).page,
 };
 
 function configure(configuration: Partial<Configuration>) {
@@ -18,4 +16,8 @@ function configure(configuration: Partial<Configuration>) {
   return previousConfig;
 }
 
-export { config, configure };
+function getConfig() {
+  return config;
+}
+
+export { getConfig, configure };

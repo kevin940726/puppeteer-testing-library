@@ -1,5 +1,5 @@
 import { setTimeout, clearTimeout } from 'timers';
-import { config } from './configure';
+import { getConfig } from './configure';
 import { stackPrettifier } from './query-error';
 
 interface WaitOptions {
@@ -10,7 +10,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function waitFor<Type>(
   callback: () => Promise<Type>,
-  { timeout = config.timeout }: WaitOptions = {}
+  { timeout = getConfig().timeout }: WaitOptions = {}
 ): Promise<Type> {
   const prettifyStack = stackPrettifier(new Error());
 
