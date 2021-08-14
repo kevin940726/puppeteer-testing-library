@@ -116,7 +116,7 @@ async function queryAll(
 
   const elements = [];
   const elementsHandleProperties = await elementsHandle.getProperties();
-  elementsHandle.dispose();
+  await elementsHandle.dispose();
   for (const property of elementsHandleProperties.values()) {
     const element = property.asElement();
 
@@ -143,7 +143,7 @@ async function queryAll(
       ) {
         elements.push(element);
       } else {
-        element.dispose();
+        await element.dispose();
       }
     }
   }
