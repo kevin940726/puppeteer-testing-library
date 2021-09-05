@@ -139,7 +139,7 @@ async function toBeVisible(
       }
     }, findOptions);
   } catch (err) {
-    error = err;
+    error = err as Error;
   }
 
   const options = {
@@ -183,7 +183,7 @@ async function toHaveFocus(
       }
     }, findOptions);
   } catch (err) {
-    error = err;
+    error = err as Error;
   }
 
   const options = {
@@ -218,7 +218,7 @@ async function toThrowQueryEmptyError(
   try {
     await promise;
   } catch (err) {
-    error = err;
+    error = err as Error;
   }
 
   pass = error?.name === 'QueryEmptyError';
@@ -293,8 +293,8 @@ async function toBeFound(
       { timeout: findOptions.timeout }
     );
   } catch (err) {
-    pass = err.name === 'QueryFoundError';
-    error = err;
+    error = err as Error;
+    pass = error.name === 'QueryFoundError';
   }
 
   const options = {
